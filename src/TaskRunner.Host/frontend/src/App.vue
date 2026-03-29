@@ -28,7 +28,8 @@ const selectedToolId = ref(tools[0]?.id ?? '');
 <style scoped>
 .app-shell {
   display: flex;
-  height: 100vh;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 

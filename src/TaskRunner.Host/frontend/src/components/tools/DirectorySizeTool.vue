@@ -83,19 +83,27 @@ onUnmounted(() => {
 function handleKeyDown(e: KeyboardEvent) {
     // Check if backspace was pressed and we're not in an input field
     const target = e.target as HTMLElement;
-    const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+    const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
     if (e.key === 'Backspace' && !isInput) {
         e.preventDefault();
-        goUp();
+        if (pathHistory.value.length > 0) {
+            goBack();
+        } else if (canGoUp.value) {
+            goUp();
+        }
     }
 }
 
 function handleMouseUp(e: MouseEvent) {
     // Button 3 is the standard "Back" button on mice
-    if (e.button === 3) {
+    if (e.button === 3 || e.button === 4) { // sometimes 3 or 4 depending on mouse driver
         e.preventDefault();
-        goBack(); // Or goUp(), depending on if you want it to go back in history or to the parent folder. Given "like Windows Explorer", goBack is usually right for the back button, and parent directory is up. We'll use goBack() for history.
+        if (pathHistory.value.length > 0) {
+            goBack();
+        } else if (canGoUp.value) {
+            goUp();
+        }
     }
 }
 

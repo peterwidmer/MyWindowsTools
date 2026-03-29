@@ -11,6 +11,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  height: 100%;
+  width: 100%;
 }
 
 body {
@@ -20,8 +22,10 @@ body {
   color: var(--text-primary);
   background: var(--content-bg);
   overflow: hidden;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #app {

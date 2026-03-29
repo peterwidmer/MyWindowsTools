@@ -21,9 +21,18 @@ public class MainForm : Form
         {
             Dock = DockStyle.Fill
         };
-        
+
         Controls.Add(_webView);
-        
+
+        // Ensure WebView2 reflows when the form resizes
+        Resize += (s, e) => 
+        {
+            if (_webView != null) 
+            {
+                _webView.Size = ClientSize;
+            }
+        };
+
         Load += MainForm_Load;
     }
 
