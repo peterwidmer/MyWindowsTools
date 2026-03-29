@@ -11,15 +11,25 @@ public class SignalRProgressReporter : IProgressReporter
 {
     private readonly IHubContext<TaskHub> _hubContext;
     private readonly string _taskId;
+    private readonly Func<TaskProgress, Task>? _onProgress;
 
-    public SignalRProgressReporter(IHubContext<TaskHub> hubContext, string taskId)
+    public SignalRProgressReporter(
+        IHubContext<TaskHub> hubContext,
+        string taskId,
+        Func<TaskProgress, Task>? onProgress = null)
     {
         _hubContext = hubContext;
         _taskId = taskId;
+        _onProgress = onProgress;
     }
 
     public async Task ReportProgressAsync(TaskProgress progress)
     {
+        if (_onProgress is not null)
+        {
+            await _onProgress(progress);
+        }
+
         await _hubContext.Clients.Group(_taskId).SendAsync("TaskProgress", new
         {
             TaskId = _taskId,

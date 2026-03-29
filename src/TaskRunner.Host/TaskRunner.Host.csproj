@@ -34,6 +34,9 @@
     <TypeScriptCompile Remove="frontend\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="frontend\src\components\tools\FindFilesTool.vue" />
+  </ItemGroup>
+  <ItemGroup>
     <TypeScriptCompile Include="frontend\src\tools\registry.ts" />
   </ItemGroup>
 

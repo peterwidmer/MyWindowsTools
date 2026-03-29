@@ -12,4 +12,10 @@ export const tools: ToolDefinition[] = [
     description: 'Analyze folder sizes and find the largest directories',
     icon: 'directory-size',
   },
+  {
+    id: 'find-files',
+    name: 'Find Files',
+    description: 'Find files by filter across directories',
+    icon: 'find-files',
+  }
 ];

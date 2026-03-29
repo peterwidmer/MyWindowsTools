@@ -14,6 +14,7 @@ public class TaskExecutionService
     private readonly IHubContext<TaskHub> _hubContext;
     private readonly ILogger<TaskExecutionService> _logger;
     private readonly ConcurrentDictionary<string, RunningTaskInfo> _runningTasks = new();
+    private readonly ConcurrentDictionary<string, TaskSnapshot> _taskSnapshots = new();
 
     public TaskExecutionService(
         IServiceProvider serviceProvider,
@@ -53,7 +54,25 @@ public class TaskExecutionService
 
         var taskId = Guid.NewGuid().ToString("N");
         var cts = new CancellationTokenSource();
-        var progressReporter = new SignalRProgressReporter(_hubContext, taskId);
+        var startTime = DateTime.UtcNow;
+
+        _taskSnapshots[taskId] = new TaskSnapshot
+        {
+            TaskId = taskId,
+            TaskType = taskType,
+            Status = "running",
+            StartTime = startTime
+        };
+
+        var progressReporter = new SignalRProgressReporter(_hubContext, taskId, progress =>
+        {
+            if (_taskSnapshots.TryGetValue(taskId, out var snapshot))
+            {
+                snapshot.Progress = progress;
+            }
+
+            return Task.CompletedTask;
+        });
 
         var runningTask = Task.Run(async () =>
         {
@@ -65,16 +84,23 @@ public class TaskExecutionService
                 {
                     TaskId = taskId,
                     TaskType = taskType,
-                    StartTime = DateTime.UtcNow
+                    StartTime = startTime
                 });
 
                 var result = await task.ExecuteAsync(parameters, progressReporter, cts.Token);
+
+                if (_taskSnapshots.TryGetValue(taskId, out var completedSnapshot))
+                {
+                    completedSnapshot.Status = "completed";
+                    completedSnapshot.Result = result;
+                    completedSnapshot.EndTime = DateTime.UtcNow;
+                }
 
                 await _hubContext.Clients.Group(taskId).SendAsync("TaskCompleted", new
                 {
                     TaskId = taskId,
                     Result = result,
-                    EndTime = DateTime.UtcNow
+                    EndTime = _taskSnapshots[taskId].EndTime
                 });
 
                 _logger.LogInformation("Task {TaskId} completed successfully", taskId);
@@ -83,11 +109,17 @@ public class TaskExecutionService
             catch (OperationCanceledException)
             {
                 _logger.LogInformation("Task {TaskId} was cancelled", taskId);
+
+                if (_taskSnapshots.TryGetValue(taskId, out var cancelledSnapshot))
+                {
+                    cancelledSnapshot.Status = "cancelled";
+                    cancelledSnapshot.EndTime = DateTime.UtcNow;
+                }
                 
                 await _hubContext.Clients.Group(taskId).SendAsync("TaskCancelled", new
                 {
                     TaskId = taskId,
-                    EndTime = DateTime.UtcNow
+                    EndTime = _taskSnapshots[taskId].EndTime
                 });
 
                 return TaskResult.Failed("Task was cancelled");
@@ -95,12 +127,19 @@ public class TaskExecutionService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Task {TaskId} failed with error", taskId);
+
+                if (_taskSnapshots.TryGetValue(taskId, out var failedSnapshot))
+                {
+                    failedSnapshot.Status = "failed";
+                    failedSnapshot.Result = TaskResult.Failed(ex.Message);
+                    failedSnapshot.EndTime = DateTime.UtcNow;
+                }
                 
                 await _hubContext.Clients.Group(taskId).SendAsync("TaskFailed", new
                 {
                     TaskId = taskId,
                     Error = ex.Message,
-                    EndTime = DateTime.UtcNow
+                    EndTime = _taskSnapshots[taskId].EndTime
                 });
 
                 return TaskResult.Failed(ex.Message);
@@ -117,7 +156,7 @@ public class TaskExecutionService
             TaskType = taskType,
             Task = runningTask,
             CancellationTokenSource = cts,
-            StartTime = DateTime.UtcNow
+            StartTime = startTime
         };
 
         return taskId;
@@ -149,6 +188,11 @@ public class TaskExecutionService
         });
     }
 
+    public TaskSnapshot? GetTaskSnapshot(string taskId)
+    {
+        return _taskSnapshots.TryGetValue(taskId, out var snapshot) ? snapshot : null;
+    }
+
     private class RunningTaskInfo
     {
         public required string TaskId { get; init; }
@@ -157,6 +201,17 @@ public class TaskExecutionService
         public required CancellationTokenSource CancellationTokenSource { get; init; }
         public required DateTime StartTime { get; init; }
     }
+}
+
+public class TaskSnapshot
+{
+    public required string TaskId { get; init; }
+    public required string TaskType { get; init; }
+    public required string Status { get; set; }
+    public DateTime StartTime { get; init; }
+    public DateTime? EndTime { get; set; }
+    public TaskProgress? Progress { get; set; }
+    public TaskResult? Result { get; set; }
 }
 
 public class TaskTypeInfo

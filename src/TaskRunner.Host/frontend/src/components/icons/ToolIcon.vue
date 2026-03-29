@@ -15,6 +15,10 @@
       <path d="M12 10v6" />
       <path d="M9 13h6" />
     </template>
+    <template v-else-if="name === 'find-files'">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </template>
     <template v-else>
       <circle cx="12" cy="12" r="10" />
       <path d="M12 16v-4" />

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import TheSidebar from './components/layout/TheSidebar.vue';
 import DirectorySizeTool from './components/tools/DirectorySizeTool.vue';
+import FindFilesTool from './components/tools/FindFilesTool.vue';
 import { tools } from './tools/registry';
 
 const selectedToolId = ref(tools[0]?.id ?? '');
@@ -17,6 +18,7 @@ const selectedToolId = ref(tools[0]?.id ?? '');
     <main class="app-content">
       <Transition name="fade-slide" mode="out-in">
         <DirectorySizeTool v-if="selectedToolId === 'directory-size'" key="directory-size" />
+        <FindFilesTool v-else-if="selectedToolId === 'find-files'" key="find-files" />
         <div v-else key="empty" class="empty-state">
           <p>Select a tool from the sidebar to get started.</p>
         </div>

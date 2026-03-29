@@ -84,11 +84,13 @@ static void StartWebServer(string[] args, string url)
     builder.Services.AddSingleton<IBackgroundTask, FileProcessingTask>();
     builder.Services.AddSingleton<IBackgroundTask, DataSyncTask>();
     builder.Services.AddSingleton<IBackgroundTask, DirectorySizeTask>();
+    builder.Services.AddSingleton<IBackgroundTask, FindFilesTask>();
 
     // Register synchronous operations
     builder.Services.AddSingleton<ISyncOperation, CalculatorOperation>();
     builder.Services.AddSingleton<ISyncOperation, SystemInfoOperation>();
     builder.Services.AddSingleton<ISyncOperation, GetDrivesOperation>();
+    builder.Services.AddSingleton<ISyncOperation, DeleteFilesOperation>();
 
     // Register execution services
     builder.Services.AddSingleton<TaskExecutionService>();
