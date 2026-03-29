@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/vite-env.d.ts","./src/services/api.ts","./src/services/taskhub.ts","./src/types/index.ts","./src/app.vue","./src/components/helloworld.vue","./src/components/operationpanel.vue","./src/components/taskpanel.vue","./src/components/taskprogress.vue"],"errors":true,"version":"6.0.2"}

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/TaskRunner.Core/TaskRunner.Core.csproj" />
+  <Project Path="src/TaskRunner.Host/TaskRunner.Host.csproj" />
+</Solution>
