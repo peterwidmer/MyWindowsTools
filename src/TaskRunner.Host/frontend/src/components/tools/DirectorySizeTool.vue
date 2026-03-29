@@ -62,6 +62,10 @@ onMounted(async () => {
     taskHub.on('TaskCompleted', onTaskCompleted);
     taskHub.on('TaskCancelled', onTaskCancelled);
     taskHub.on('TaskFailed', onTaskFailed);
+
+    // Add global event listeners for navigation
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mouseup', handleMouseUp);
 });
 
 onUnmounted(() => {
@@ -70,7 +74,30 @@ onUnmounted(() => {
     taskHub.off('TaskCompleted', onTaskCompleted);
     taskHub.off('TaskCancelled', onTaskCancelled);
     taskHub.off('TaskFailed', onTaskFailed);
+
+    // Remove global event listeners
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('mouseup', handleMouseUp);
 });
+
+function handleKeyDown(e: KeyboardEvent) {
+    // Check if backspace was pressed and we're not in an input field
+    const target = e.target as HTMLElement;
+    const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+
+    if (e.key === 'Backspace' && !isInput) {
+        e.preventDefault();
+        goUp();
+    }
+}
+
+function handleMouseUp(e: MouseEvent) {
+    // Button 3 is the standard "Back" button on mice
+    if (e.button === 3) {
+        e.preventDefault();
+        goBack(); // Or goUp(), depending on if you want it to go back in history or to the parent folder. Given "like Windows Explorer", goBack is usually right for the back button, and parent directory is up. We'll use goBack() for history.
+    }
+}
 
 // Format bytes
 function formatBytes(bytes: number): string {
